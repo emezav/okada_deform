@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/DeformOkada.exe",
-            "args": ["${workspaceFolder}/samples/multiple_faults_2.txt"],
+            "args": ["${workspaceFolder}/samples/test.txt"],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
             "environment": [],

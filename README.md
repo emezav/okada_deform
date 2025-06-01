@@ -120,15 +120,15 @@ make clean build
 # Run the simulation using the configuration defined on samples/averroes.txt
 # Generates samples/averroes_x.txt samples/averroes_y.txt samples/averroes_z.txt
 # Prints the comparison of the execution times and GPU speed up.
-./DeformOkada.exe samples/averroes.txt
+./okada_deform samples/averroes.txt
 
 # Same as before, generates x y and z grids
 # Prints the comparison of the execution times and GPU speed up.
-./DeformOkada.exe samples/chile_1960.txt
+./okada_deform samples/chile_1960.txt
 
 # Same as before, but no grids are saved to disk.
 # Prints the comparison of the execution times and GPU speed up.
-./DeformOkada.exe samples/chile_1960.txt false
+./okada_deform samples/chile_1960.txt false
 
 ```
 
