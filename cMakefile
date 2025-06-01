@@ -1,0 +1,31 @@
+# Makefile
+
+.PHONY: all clean build debug release refresh purge
+
+all:
+	cd build;cmake --build .
+
+clean:
+	cd build;cmake --build . --target clean
+
+build:
+	cd build;cmake --build .
+
+debug:
+	cd build;cmake --build . --config Debug
+
+release:
+	cd build;cmake --build . --config Release
+
+dev-vs:
+	rm -rf build
+	mkdir -p build
+	cd build;cmake -G "Visual Studio 17 2022" -A x64 ..
+
+dev-unix:
+	rm -rf build
+	mkdir -p build
+	cd build;cmake -G "Unix Makefiles" ..
+
+purge:
+	rm -rf build
