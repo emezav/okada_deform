@@ -1,5 +1,7 @@
 # CPU/GPU Implementation of the Okada deformation model due to a finite rectangular earthquake source
 
+Please review the [Project Presentation](./project_presentation/project_presentation.pdf) for project details.
+
 According to Wikipedia, faults are fractures in the Earth's crust where rocks have moved relative to each other,
 often occurring at plate boundaries [1]. The rapid movement of these faults causes earthquakes, and in the case
 of undersea faults, Tsunami waves can be formed.
