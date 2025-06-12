@@ -317,6 +317,7 @@ namespace okada85gpu
          * tnStr: tan(strike)
          */
 
+        // Mu/L constant
         cudaStatus = cudaMemcpyToSymbol((const void *)&cuMu_L, &Mu_L, sizeof(float), 0, cudaMemcpyHostToDevice);
         if (cudaStatus != cudaSuccess)
         {
@@ -324,6 +325,7 @@ namespace okada85gpu
             return status::FAILURE;
         }
 
+        // Grid columns
         cudaStatus = cudaMemcpyToSymbol((const void *)&cuColumns, &columns, sizeof(int), 0, cudaMemcpyHostToDevice);
         if (cudaStatus != cudaSuccess)
         {
@@ -331,6 +333,7 @@ namespace okada85gpu
             return status::FAILURE;
         }
 
+        // Grid rows
         cudaStatus = cudaMemcpyToSymbol((const void *)&cuRows, &rows, sizeof(int), 0, cudaMemcpyHostToDevice);
         if (cudaStatus != cudaSuccess)
         {
@@ -338,6 +341,7 @@ namespace okada85gpu
             return status::FAILURE;
         }
 
+        // Dx Grid X resolution
         cudaStatus = cudaMemcpyToSymbol((const void *)&cuDx, &dx, sizeof(float), 0, cudaMemcpyHostToDevice);
         if (cudaStatus != cudaSuccess)
         {
@@ -345,6 +349,7 @@ namespace okada85gpu
             return status::FAILURE;
         }
 
+        // Grid Y resolution
         cudaStatus = cudaMemcpyToSymbol((const void *)&cuDy, &dy, sizeof(float), 0, cudaMemcpyHostToDevice);
         if (cudaStatus != cudaSuccess)
         {
@@ -352,6 +357,7 @@ namespace okada85gpu
             return status::FAILURE;
         }
 
+        // Create a Stream for the kernels
         cudaStream_t stream;
         cudaStatus = cudaStreamCreate(&stream);
         if (cudaStatus != cudaSuccess)
@@ -359,6 +365,14 @@ namespace okada85gpu
             cerr << "Unable to create execution stream" << endl;
             return status::FAILURE;
         }
+
+        // Launch a kernel on the GPU with one thread for each element.
+        dim3 threadsPerBlock(16, 16); // Attempt to use all the 1024
+        dim3 blocks((columns / threadsPerBlock.x) + 1, (rows / threadsPerBlock.y) + 1);
+
+        cout << "Blocks: " << blocks.x << " x " << blocks.y << endl;
+        cout << "Threads per block: " << threadsPerBlock.x << " x " << threadsPerBlock.y << endl;
+        cout << "Total threads: " << (blocks.x * threadsPerBlock.x) * (blocks.y * threadsPerBlock.y) << endl;
 
         // For each one of the components
         for (int n = 0; n < nComponents; n++)
@@ -371,10 +385,11 @@ namespace okada85gpu
             float dir = radians(di);         // dip to rad
             float slr = radians(sl);         // slip to rad
 
-            // Calculate sin and cosine of dip angle
+            // Calculate sin and cos of dip angle
             float cs = cosf(dir);
             float sn = sinf(dir);
 
+            // Calculate cos, sin an tan of strike angle
             float csStr = cosf(str);
             float snStr = sinf(str);
             float tnStr = tanf(str);
@@ -382,22 +397,14 @@ namespace okada85gpu
             // Calculate distance from height and strike angle
             float de = hh + width * sn;
 
-            // Calculate U1, U2, and U3 components
+            // Calculate U1, U2, and U3 components on the Okada coordiante system
             float U1 = d * cosf(slr);
             float U2 = d * sinf(slr);
             float U3 = d; // Dislocation
 
             // Calculate i, j fault position on the grid relative to the grid origin
-            int i0 = (lon - x0lon) * 3600.0 / drx;
-            int j0 = (lat - y0lat) * 3600.0 / dry;
-
-            // Launch a kernel on the GPU with one thread for each element.
-            dim3 threadsPerBlock(8, 8); // Attempt to use all the 1024
-            dim3 blocks((columns / threadsPerBlock.x) + 1, (rows / threadsPerBlock.y) + 1);
-
-            cout << "Blocks: " << blocks.x << " x " << blocks.y << endl;
-            cout << "Threads per block: " << threadsPerBlock.x << " x " << threadsPerBlock.y << endl;
-            cout << "Total threads: " << (blocks.x * threadsPerBlock.x) * (blocks.y * threadsPerBlock.y) << endl;
+            int i0 = (lon - x0lon) * 3600.0f / drx;
+            int j0 = (lat - y0lat) * 3600.0f / dry;
 
             /*
              * COPY EVENT CONSTANTS TO DEVICE
@@ -414,6 +421,7 @@ namespace okada85gpu
              * tnStr: tan(strike)
              */
 
+            // cos of dip
             cudaStatus = cudaMemcpyToSymbol((const void *)&cuCs, &cs, sizeof(float), 0, cudaMemcpyHostToDevice);
             if (cudaStatus != cudaSuccess)
             {
@@ -421,6 +429,7 @@ namespace okada85gpu
                 return status::FAILURE;
             }
 
+            // sin of dip
             cudaStatus = cudaMemcpyToSymbol((const void *)&cuSn, &sn, sizeof(float), 0, cudaMemcpyHostToDevice);
             if (cudaStatus != cudaSuccess)
             {
@@ -428,6 +437,7 @@ namespace okada85gpu
                 return status::FAILURE;
             }
 
+            // cos of strike
             cudaStatus = cudaMemcpyToSymbol((const void *)&cuCsStr, &csStr, sizeof(float), 0, cudaMemcpyHostToDevice);
             if (cudaStatus != cudaSuccess)
             {
@@ -435,6 +445,7 @@ namespace okada85gpu
                 return status::FAILURE;
             }
 
+            // sin of strike
             cudaStatus = cudaMemcpyToSymbol((const void *)&cuSnStr, &snStr, sizeof(float), 0, cudaMemcpyHostToDevice);
             if (cudaStatus != cudaSuccess)
             {
@@ -442,6 +453,7 @@ namespace okada85gpu
                 return status::FAILURE;
             }
 
+            // tan of strike
             cudaStatus = cudaMemcpyToSymbol((const void *)&cuTnStr, &tnStr, sizeof(float), 0, cudaMemcpyHostToDevice);
             if (cudaStatus != cudaSuccess)
             {
@@ -449,6 +461,7 @@ namespace okada85gpu
                 return status::FAILURE;
             }
 
+            // Fault length
             cudaStatus = cudaMemcpyToSymbol((const void *)&cuL, &length, sizeof(float), 0, cudaMemcpyHostToDevice);
             if (cudaStatus != cudaSuccess)
             {
@@ -456,6 +469,7 @@ namespace okada85gpu
                 return status::FAILURE;
             }
 
+            // Fault width
             cudaStatus = cudaMemcpyToSymbol((const void *)&cuW, &width, sizeof(float), 0, cudaMemcpyHostToDevice);
             if (cudaStatus != cudaSuccess)
             {
@@ -463,6 +477,7 @@ namespace okada85gpu
                 return status::FAILURE;
             }
 
+            // U1 component
             cudaStatus = cudaMemcpyToSymbol((const void *)&cuU1, &U1, sizeof(float), 0, cudaMemcpyHostToDevice);
             if (cudaStatus != cudaSuccess)
             {
@@ -470,6 +485,7 @@ namespace okada85gpu
                 return status::FAILURE;
             }
 
+            // U2 component
             cudaStatus = cudaMemcpyToSymbol((const void *)&cuU2, &U2, sizeof(float), 0, cudaMemcpyHostToDevice);
             if (cudaStatus != cudaSuccess)
             {
@@ -477,6 +493,7 @@ namespace okada85gpu
                 return status::FAILURE;
             }
 
+            // U3 component
             cudaStatus = cudaMemcpyToSymbol((const void *)&cuU3, &U3, sizeof(float), 0, cudaMemcpyHostToDevice);
             if (cudaStatus != cudaSuccess)
             {
@@ -535,13 +552,14 @@ namespace okada85gpu
         float *Uy)
     {
 
+        // Calculate this thread position on the grd
         int i = blockIdx.x * blockDim.x + threadIdx.x;
         int j = blockIdx.y * blockDim.y + threadIdx.y;
 
+        // If this thread position is inside the grid
         if (i < cuColumns && j < cuRows)
         {
-
-            // Calculate this thread position on the 1D flattened array
+            // Calculate this thread offset on the 1D flattened array
             int pos = (j * cuColumns) + i;
 
             // printf("%d;%d;%d\n", i, j, pos);
@@ -577,20 +595,20 @@ namespace okada85gpu
 
             // NOTE: Tensile components (27) PP.1144 aren't calculated.
 
-            // Add to z
+            // Add to Uz
             Uz[pos] += uzStr + uzDip;
 
-            // Add to zs
+            // Add to Us
             Us[pos] += uxStr + uxDip;
 
-            // Add to zd
+            // Add to Ud
             Ud[pos] += uyStr + uyDip;
 
-            // Add to zx
+            // Add to Ux
             Ux[pos] += Us[pos] * cuCsStr - Ud[pos] * cuSnStr;
             // Ux[pos] = (j * cuColumns) + i;
 
-            // Add to zy
+            // Add to Uy
             Uy[pos] += Us[pos] * cuSnStr + Ud[pos] * cuCsStr;
         }
     }
@@ -641,9 +659,9 @@ namespace okada85gpu
         strikeSlip(x - cuL, p - cuW, p, q, fx4, fy4, fz4);
 
         // Evaluate chinnery notation for components, x, y and z
-        Ux = -(cuU1 / (2.0 * pi)) * (fx1 - fx2 - fx3 + fx4);
-        Uy = -(cuU1 / (2.0 * pi)) * (fy1 - fy2 - fy3 + fy4);
-        Uz = -(cuU1 / (2.0 * pi)) * (fz1 - fz2 - fz3 + fz4);
+        Ux = -(cuU1 / (2.0f * pi)) * (fx1 - fx2 - fx3 + fx4);
+        Uy = -(cuU1 / (2.0f * pi)) * (fy1 - fy2 - fy3 + fy4);
+        Uz = -(cuU1 / (2.0f * pi)) * (fz1 - fz2 - fz3 + fz4);
     }
 
     __noinline__ __device__ void chinneryDipSlip(

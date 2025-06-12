@@ -16,6 +16,7 @@
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+#include "Env.h"
 #include "grid.h"
 #include "okada85cpu.h"
 #include "okada85gpu.cuh"
@@ -34,7 +35,7 @@ namespace fs = std::filesystem;
 /**
  * @brief Allocates host memory for the result grids
  * @param numElements number of elements (rows * columns)
- * @return [status, Uz, Us, Ud, Ux, Ux, Uy] arrays to hold deformation results for each point on the grid (see )
+ * @return [status, Uz, Us, Ud, Ux, Ux, Uy] arrays to hold deformation results for each point on the grid
  */
 std::tuple<status, float *, float *, float *, float *, float *> allocateHostGrids(int numElements)
 {
@@ -104,7 +105,7 @@ std::tuple<status, float *, float *, float *, float *, float *> allocateHostGrid
  * @param Ux Pointer to deformation grid on the X (longitude) directrion
  * @param Uy Pointer to deformation grid on the Y (latitude) directrion
  * @param numElements number of elements (rows * columns)
- * @return [status, Uz, Us, Ud, Ux, Ux, Uy] arrays to hold deformation results for each point on the grid (see )
+ * @return [status, Uz, Us, Ud, Ux, Ux, Uy] arrays to hold deformation results for each point on the grid
  */
 std::tuple<status, float *, float *, float *, float *, float *> allocateDeviceGrids(
     float *Uz,
@@ -364,6 +365,8 @@ void usage(const char *program);
  */
 int main(int argc, char *argv[])
 {
+
+
     char *path = NULL;
 
     if (argc > 1){
@@ -389,16 +392,28 @@ int main(int argc, char *argv[])
         exit(EXIT_FAILURE);
     }
 
-    float cpuTime{0.0f};
-    // Calculate deformation on GPU
-    deformGpu(path, createGrids, cpuTime);
+    // Check for environment settings
+
+    string envGPU = Env::get("gpu");
+    string envCPU = Env::get("cpu");
+
+    bool calculateGPU = envGPU.size() == 0 || envGPU.compare("true") == 0 || envGPU.compare("TRUE") == 0;
+    bool calculateCPU = envCPU.size() == 0 || envCPU.compare("true") == 0 || envCPU.compare("TRUE") == 0;
 
     float gpuTime{0.0f};
+    float cpuTime{0.0f};
+
+    // Calculate deformation on GPU
+    if (calculateGPU) {
+        deformGpu(path, createGrids, cpuTime);
+    }
+
     // Calculate deformation on CPU
+    if (calculateCPU) {
+        deformCpu(path, createGrids, gpuTime);
+    }
 
-    deformCpu(path, createGrids, gpuTime);
-
-    if (gpuTime > 0)
+    if (gpuTime > 0.0f && cpuTime > 0.0f)
     {
         float speedUp = gpuTime / cpuTime;
         cout << "GPU speed up: " << std::fixed << std::setprecision(2) << speedUp << "x" << endl;
@@ -476,7 +491,7 @@ status deformCpu(const char *path, bool createGrids, float &elapsedTime)
         dx,
         dy,
         components,
-        1,
+        nComponents,
         params,
         Uz, Us, Ud, Ux, Uy);
 
@@ -574,7 +589,7 @@ status deformGpu(const char *path, bool createGrids, float &elapsedTime)
         dx,
         dy,
         components,
-        1,
+        nComponents,
         params,
         d_Uz, d_Us, d_Ud, d_Ux, d_Uy);
 
