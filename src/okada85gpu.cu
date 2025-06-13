@@ -317,6 +317,14 @@ namespace okada85gpu
          * tnStr: tan(strike)
          */
 
+        // Eps constant
+        cudaStatus = cudaMemcpyToSymbol((const void *)&cuEps, &Eps, sizeof(float), 0, cudaMemcpyHostToDevice);
+        if (cudaStatus != cudaSuccess)
+        {
+            cerr << "Failed to copy constant Eps from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
+            return status::FAILURE;
+        }
+
         // Mu/L constant
         cudaStatus = cudaMemcpyToSymbol((const void *)&cuMu_L, &Mu_L, sizeof(float), 0, cudaMemcpyHostToDevice);
         if (cudaStatus != cudaSuccess)
@@ -562,8 +570,6 @@ namespace okada85gpu
             // Calculate this thread offset on the 1D flattened array
             int pos = (j * cuColumns) + i;
 
-            // printf("%d;%d;%d\n", i, j, pos);
-
             // Transform into Okada coordinate system.
 
             /*
@@ -604,12 +610,34 @@ namespace okada85gpu
             // Add to Ud
             Ud[pos] += uyStr + uyDip;
 
-            // Add to Ux
-            Ux[pos] += Us[pos] * cuCsStr - Ud[pos] * cuSnStr;
+            // Calculate Ux
+            Ux[pos] = Us[pos] * cuCsStr - Ud[pos] * cuSnStr;
             // Ux[pos] = (j * cuColumns) + i;
 
-            // Add to Uy
-            Uy[pos] += Us[pos] * cuSnStr + Ud[pos] * cuCsStr;
+            // Calculate Uy
+            Uy[pos] = Us[pos] * cuSnStr + Ud[pos] * cuCsStr;
+
+            // Discard small deformations
+            if (fabs(Uz[pos]) <= 0.01f)
+            {
+                Uz[pos] = 0.0f;
+            }
+            if (fabs(Us[pos]) <= 0.01f)
+            {
+                Us[pos] = 0.0f;
+            }
+            if (fabs(Ud[pos]) <= 0.01f)
+            {
+                Ud[pos] = 0.0f;
+            }
+            if (fabs(Ux[pos]) <= 0.01f)
+            {
+                Ux[pos] = 0.0f;
+            }
+            if (fabs(Uy[pos]) <= 0.01f)
+            {
+                Uy[pos] = 0.0f;
+            }
         }
     }
 
@@ -709,9 +737,10 @@ namespace okada85gpu
         dipSlip(x - cuL, p - cuW, p, q, fx4, fy4, fz4);
 
         // Evaluate chinnery notation for components, x, y and z
-        Ux = -(cuU2 / (2.0 * pi)) * (fx1 - fx2 - fx3 + fx4);
-        Uy = -(cuU2 / (2.0 * pi)) * (fy1 - fy2 - fy3 + fy4);
-        Uz = -(cuU2 / (2.0 * pi)) * (fz1 - fz2 - fz3 + fz4);
+        Ux = -(cuU2 / (2.0f * pi)) * (fx1 - fx2 - fx3 + fx4);
+        Uy = -(cuU2 / (2.0f * pi)) * (fy1 - fy2 - fy3 + fy4);
+        Uz = -(cuU2 / (2.0f * pi)) * (fz1 - fz2 - fz3 + fz4);
+
     }
 
     __noinline__ __device__ void strikeSlip(
@@ -1051,7 +1080,7 @@ namespace okada85gpu
             return i4;
         }
 
-        // If cs -> o, use (29) PP. 1145
+        // If cs -> 0, use (29) PP. 1145
         if (zeroCs)
         {
             // If (R + dTilde) is not zero, calculate (29) PP. 1114
@@ -1129,14 +1158,14 @@ namespace okada85gpu
         if (zeroCs)
         {
             // cs -> 0, use (29) PP. 1145
-            i5 = (zeroRdTilde ? 0.0
+            i5 = (zeroRdTilde ? 0.0f
                               : -cuMu_L * ((Xi * cuSn) / (R + dTilde)));
         }
         else
         {
             // cs is not zero, use (28) PP. 1144
             float X = sqrt(Xi * Xi + q * q);
-            i5 = isZero(R + X) ? 0.0
+            i5 = isZero(R + X) ? 0.0f
                                : ((cuMu_L * 2.0) / cuCs) * atanf(((Eta * (X + (q * cuCs))) + (X * (R + X) * cuSn)) / (Xi * (R + X) * cuCs));
         }
 

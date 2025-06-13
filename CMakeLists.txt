@@ -34,6 +34,9 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Use folders to group CMake targets
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# Create compile_commands.json
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON )
+
 # Add c/c++ headers and sources
 file(GLOB cpu_source_files "${CMAKE_SOURCE_DIR}/src/*.cpp" "${CMAKE_SOURCE_DIR}/include/*.h")
 
@@ -62,9 +65,6 @@ set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 # Set default start project
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME})
 
-# Create compile_commands.json
-set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
-
 # Set link flags to mirror project link flags
 set_property(TARGET ${PROJECT_NAME} PROPERTY LINK_FLAGS ${PROJ_LINK_FLAGS})
 
@@ -76,3 +76,4 @@ set_property(TARGET ${PROJECT_NAME}  PROPERTY DEBUGGER_WORKING_DIRECTORY ${CMAKE
 
 # Set debugger working directory to source dir (for Visual Studio)
 set_property(TARGET ${PROJECT_NAME}  PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+

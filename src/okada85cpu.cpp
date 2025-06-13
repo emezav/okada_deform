@@ -28,67 +28,7 @@ namespace okada85cpu
     return (fabsf(val) < eps);
   }
 
-  /**
-   * @brief Calculates Chinnery's strike / slip (25) PP. 1144 for (24) PP. 1143
-   * @param U1 strike-slip component of the dislocation (Fig. 1) PP. 1138
-   * @param Mu_L Mu-Lambda coefficient for I1 - I5
-   * @param x Outer integral variable (23) PP. 1143
-   * @param p Inner integral variable (23) PP. 1143
-   * @param q y*sin(dip) - d*cos(dip) (30) PP. 1145
-   * @param cs cos(dip) to avoid recalculation
-   * @param sn sin(dip) to avoid recalculation
-   * @param L Fault length (Fig. 1) PP. 1138
-   * @param W Fault width (Fig. 1) PP. 1138
-   * @param Eps Parameter to check if a value is close to zero.
-   * @param Ux (Output) Reference to store the result for the x component (26)
-   * @param Uy (Output) Reference to store the result for the y component (26)
-   * @param Uz (Output) Reference to store the result for the z component (26)
-   */
-  void chinneryStrikeSlip(
-      float U1,
-      float Mu_L,
-      float x,
-      float p,
-      float q,
-      float cs,
-      float sn,
-      float L,
-      float W,
-      float Eps,
-      float &Ux,
-      float &Uy,
-      float &Uz);
-
-  /**
-   * @brief Calculates Chinnery's (24) PP. 1143 for dip (26) PP. 1144
-   * @param U2 dip-slip component of the dislocation (Fig. 1) PP. 1138
-   * @param Mu_L Mu-Lambda coefficient for I1 - I5
-   * @param x Outer integral variable (23) PP. 1143
-   * @param p Inner integral variable (23) PP. 1143
-   * @param q y*sin(dip) - d*cos(dip) (30) PP. 1145
-   * @param cs cos(dip) to avoid recalculation
-   * @param sn sin(dip) to avoid recalculation
-   * @param L Fault length (Fig. 1) PP. 1138
-   * @param W Fault width (Fig. 1) PP. 1138
-   * @param Ux (Output) Reference to store the result for the x component (26)
-   * @param Uy (Output) Reference to store the result for the y component (27)
-   * @param Uz (Output) Reference to store the result for the z component (28)
-   * @param Eps Parameter to check if a value is close to zero.
-   */
-  void chinneryDipSlip(
-      float U2,
-      float Mu_L,
-      float x,
-      float p,
-      float q,
-      float cs,
-      float sn,
-      float L,
-      float W,
-      float Eps,
-      float &Ux,
-      float &Uy,
-      float &Uz);
+  
 
   /**
    * @brief Calculates the inner part [...] for ux, uy, uz for strike-slip given Xi, Eta (25) PP. 1144
@@ -378,20 +318,42 @@ namespace okada85cpu
           // int pos = (j * columns) + i;
           int pos = linear2D(j, i, columns);
 
-          // Add to z
+          // Add to Uz
           Uz[pos] += uzStr + uzDip;
 
-          // Add to zs
+          // Add to Us
           Us[pos] += uxStr + uxDip;
 
-          // Add to zd
+          // Add to Ud
           Ud[pos] += uyStr + uyDip;
 
-          // Add to zx
+          // Calculate Ux
           Ux[pos] = Us[pos] * csStr - Ud[pos] * snStr;
 
-          // Add to zy
+          // Calculate Uy
           Uy[pos] = Us[pos] * snStr + Ud[pos] * csStr;
+
+          // Discard small deformations
+            if (fabs(Uz[pos]) <= 0.01f)
+            {
+                Uz[pos] = 0.0f;
+            }
+            if (fabs(Us[pos]) <= 0.01f)
+            {
+                Us[pos] = 0.0f;
+            }
+            if (fabs(Ud[pos]) <= 0.01f)
+            {
+                Ud[pos] = 0.0f;
+            }
+            if (fabs(Ux[pos]) <= 0.01f)
+            {
+                Ux[pos] = 0.0f;
+            }
+            if (fabs(Uy[pos]) <= 0.01f)
+            {
+                Uy[pos] = 0.0f;
+            }
         }
       } // For each element on the grid
     } // For each one of the components
