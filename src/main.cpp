@@ -40,6 +40,8 @@ namespace fs = std::filesystem;
 std::tuple<status, float *, float *, float *, float *, float *> allocateHostGrids(int numElements)
 {
     // Allocate memory for the grids
+
+    // Allocate and zero
     float *Uz = (float *)calloc(numElements, sizeof(float));
 
     if (Uz == NULL)
@@ -48,6 +50,7 @@ std::tuple<status, float *, float *, float *, float *, float *> allocateHostGrid
         return {status::FAILURE, NULL, NULL, NULL, NULL, NULL};
     }
 
+    // Allocate and zero
     float *Us = (float *)calloc(numElements, sizeof(float));
 
     if (Us == NULL)
@@ -58,6 +61,7 @@ std::tuple<status, float *, float *, float *, float *, float *> allocateHostGrid
         return {status::FAILURE, NULL, NULL, NULL, NULL, NULL};
     }
 
+    // Allocate and zero
     float *Ud = (float *)calloc(numElements, sizeof(float));
 
     if (Ud == NULL)
@@ -69,6 +73,7 @@ std::tuple<status, float *, float *, float *, float *, float *> allocateHostGrid
         return {status::FAILURE, NULL, NULL, NULL, NULL, NULL};
     }
 
+    // Allocate and zero
     float *Ux = (float *)calloc(numElements, sizeof(float));
 
     if (Ux == NULL)
@@ -81,6 +86,7 @@ std::tuple<status, float *, float *, float *, float *, float *> allocateHostGrid
         return {status::FAILURE, NULL, NULL, NULL, NULL, NULL};
     }
 
+    // Allocate and zero
     float *Uy = (float *)calloc(numElements, sizeof(float));
 
     if (Uy == NULL)
