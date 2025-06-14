@@ -115,7 +115,7 @@ namespace okada85cpu
    *
    */
   void dipSlip(
-    float Xi,
+      float Xi,
       float Eta,
       float Mu_L,
       float p,
@@ -281,11 +281,10 @@ namespace okada85cpu
     // Mu_L Coefficient for I1 - I5 (28), (29)
     float Mu_L = vs2 / (vp2 - vs2);
 
-
     // Calculate the distance of 1 arc secont at the latitude
     // of the origin of the grid
     auto [xdst, ydst] = arcSecMeters(y0lat);
-    
+
     // drx - dx in arc seconds
     float drx = dx / xdst;
 
@@ -351,7 +350,7 @@ namespace okada85cpu
            * as to correspond to strike-slip, dip-slip, and tensile components of arbitrary dislocation.
            */
 
-           // X0, y0: Position of the point grid (i, j) relative to i0, j0 in meters
+          // X0, y0: Position of the point grid (i, j) relative to i0, j0 in meters
           float x0 = (i - i0) * dx;
           float y0 = (j - j0) * dy;
 
@@ -395,26 +394,26 @@ namespace okada85cpu
           Uy[pos] = Us[pos] * snStr + Ud[pos] * csStr;
 
           // Discard small deformations
-            if (fabs(Uz[pos]) <= 0.01f)
-            {
-                Uz[pos] = 0.0f;
-            }
-            if (fabs(Us[pos]) <= 0.01f)
-            {
-                Us[pos] = 0.0f;
-            }
-            if (fabs(Ud[pos]) <= 0.01f)
-            {
-                Ud[pos] = 0.0f;
-            }
-            if (fabs(Ux[pos]) <= 0.01f)
-            {
-                Ux[pos] = 0.0f;
-            }
-            if (fabs(Uy[pos]) <= 0.01f)
-            {
-                Uy[pos] = 0.0f;
-            }
+          if (fabs(Uz[pos]) <= 0.01f)
+          {
+            Uz[pos] = 0.0f;
+          }
+          if (fabs(Us[pos]) <= 0.01f)
+          {
+            Us[pos] = 0.0f;
+          }
+          if (fabs(Ud[pos]) <= 0.01f)
+          {
+            Ud[pos] = 0.0f;
+          }
+          if (fabs(Ux[pos]) <= 0.01f)
+          {
+            Ux[pos] = 0.0f;
+          }
+          if (fabs(Uy[pos]) <= 0.01f)
+          {
+            Uy[pos] = 0.0f;
+          }
         }
       } // For each element on the grid
     } // For each one of the components

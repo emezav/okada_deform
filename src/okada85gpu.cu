@@ -113,6 +113,18 @@ namespace okada85gpu
         return (fabsf(val) < cuEps);
     }
 
+    /**
+     * @brief Returns the linear position for an element inside a 2D array, Row Major
+     * @param row Row
+     * @param column Column
+     * @param columns Total of columns
+     * @return Linear position
+     */
+    __forceinline__ __device__ int devLinear2D(int row, int column)
+    {
+        return (row * cuColumns) + column;
+    }
+
     __global__ void deform_kernel(
         int i0,
         int j0,
@@ -567,9 +579,6 @@ namespace okada85gpu
         // If this thread position is inside the grid
         if (i < cuColumns && j < cuRows)
         {
-            // Calculate this thread offset on the 1D flattened array
-            int pos = (j * cuColumns) + i;
-
             // Transform into Okada coordinate system.
 
             /*
@@ -600,6 +609,12 @@ namespace okada85gpu
             chinneryDipSlip(x, p, q, uxDip, uyDip, uzDip);
 
             // NOTE: Tensile components (27) PP.1144 aren't calculated.
+            // Implement yourself, or contact me in case you need help!
+
+            // Calculate this thread offset on the 1D flattened array
+            // (row * columns) + column
+            //int pos = (j * cuColumns) + i;
+            int pos = devLinear2D(j, i);
 
             // Add to Uz
             Uz[pos] += uzStr + uzDip;
@@ -638,7 +653,7 @@ namespace okada85gpu
             {
                 Uy[pos] = 0.0f;
             }
-        }
+        } // If this thread is inside the grid
     }
 
     __noinline__ __device__ void chinneryStrikeSlip(
@@ -740,7 +755,6 @@ namespace okada85gpu
         Ux = -(cuU2 / (2.0f * pi)) * (fx1 - fx2 - fx3 + fx4);
         Uy = -(cuU2 / (2.0f * pi)) * (fy1 - fy2 - fy3 + fy4);
         Uz = -(cuU2 / (2.0f * pi)) * (fz1 - fz2 - fz3 + fz4);
-
     }
 
     __noinline__ __device__ void strikeSlip(

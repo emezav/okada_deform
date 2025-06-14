@@ -599,6 +599,9 @@ status deformGpu(const char *path, bool createGrids, float &elapsedTime)
     if (status != status::SUCCESS)
     {
         cerr << "GPU deformation failed." << endl;
+        releaseHostMemory({Uz, Us, Ud, Ux, Uy});
+        releaseDeviceMemory({d_Uz, d_Us, d_Ud, d_Ux, d_Uy});
+        return status::FAILURE;
     }
 
     cout << "GPU simulation finished." << endl;
