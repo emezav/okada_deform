@@ -280,7 +280,7 @@ namespace okada85gpu
         float dTilde,
         float q);
 
-    __host__ status calculateDeform(
+    __host__ status deform(
         int rows,
         int columns,
         float x0lon,

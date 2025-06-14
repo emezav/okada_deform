@@ -483,7 +483,7 @@ status deformCpu(const char *path, bool createGrids, float &elapsedTime)
     t.mark("start");
 
     // Run the simulation on CPU
-    okada85cpu::calculateDeform(
+    okada85cpu::deform(
         rows,
         columns,
         x0ll,
@@ -581,7 +581,7 @@ status deformGpu(const char *path, bool createGrids, float &elapsedTime)
     t.mark("start");
 
     // Run the simulation on GPU
-    status = okada85gpu::calculateDeform(
+    status = okada85gpu::deform(
         rows,
         columns,
         x0ll,

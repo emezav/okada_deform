@@ -254,7 +254,7 @@ namespace okada85cpu
       float q,
       float Eps);
 
-  status calculateDeform(
+  status deform(
       int rows,
       int columns,
       float x0lon,

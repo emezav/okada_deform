@@ -40,7 +40,7 @@ namespace okada85cpu
     * @param Uy (Output) Resulting deformation grid (Y direction - latitude) in a single array[width * height]
     * @note Caller must allocate memory for output parameters.
     */
-   status calculateDeform(
+   status deform(
        int rows,
        int columns,
        float x0lon,
