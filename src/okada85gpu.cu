@@ -125,6 +125,17 @@ namespace okada85gpu
         return (row * cuColumns) + column;
     }
 
+    /**
+     * @brief Calculates the deformation for a fault event.
+     * @param i0 Origin of the fault on the grid - column
+     * @param j0 Origin of the fault on the grid - row
+     * @param de Depth
+     * @param Uz Deformation on the Z axis
+     * @param Us Deformation on the direction of the strike
+     * @param Ud Deformation on the direction of the dip
+     * @param Ux Deformation on X
+     * @param Uy Deformation on Y
+     */
     __global__ void deform_kernel(
         int i0,
         int j0,
@@ -134,6 +145,23 @@ namespace okada85gpu
         float *Ud,
         float *Ux,
         float *Uy);
+
+    /**
+     * @brief Apply the calculated deformation on Uz, Ux and Uy to a bathymetry
+     *
+     * @param h Bathymetry
+     * @param Uz Deformation on the Z axis
+     * @param Ux Deformation on the X axis
+     * @param Uy Deformation on the Y axis
+     * @param Ub Calculated deformation on the bathymetry
+     * @return __global__
+     */
+    __global__ void deform_bathymetry_kernel(
+        float *h,
+        float *Uz,
+        float *Ux,
+        float *Uy,
+        float *Ub);
 
     /**
      * @brief Calculates Chinnery's strike / slip (25) PP. 1144 for (24) PP. 1143
@@ -281,6 +309,90 @@ namespace okada85gpu
         float q);
 
     __host__ status deform(
+        float *h,
+        int rows,
+        int columns,
+        float x0lon,
+        float y0lat,
+        float dx,
+        float dy,
+        fault *components,
+        int nComponents,
+        parameters params,
+        float *Uz,
+        float *Us,
+        float *Ud,
+        float *Ux,
+        float *Uy, 
+        float * Ub)
+    {
+
+        cudaError_t cudaStatus;
+
+        status status = deform(
+            rows,
+            columns,
+            x0lon,
+            y0lat,
+            dx,
+            dy,
+            components,
+            nComponents,
+            params,
+            Uz,
+            Us,
+            Ud,
+            Ux,
+            Uy);
+
+        if (status != status::SUCCESS)
+        {
+            return status;
+        }
+
+        // Create a Stream for the kernel
+        cudaStream_t stream;
+        cudaStatus = cudaStreamCreate(&stream);
+        if (cudaStatus != cudaSuccess)
+        {
+            cerr << "Unable to create execution stream" << endl;
+            return status::FAILURE;
+        }
+
+        // Launch a kernel on the GPU with one thread for each element.
+        dim3 threadsPerBlock(16, 16); // Attempt to use all the 1024
+        dim3 blocks((columns / threadsPerBlock.x) + 1, (rows / threadsPerBlock.y) + 1);
+
+        // Calculate the deformation on the grid caused by this fault event.
+        // All other parameters have been calculated and sent to the device as constants.
+        deform_bathymetry_kernel<<<blocks, threadsPerBlock, 0, stream>>>(h, Uz, Ux, Uy, Ub);
+
+        // Execution error?
+        cudaStatus = cudaGetLastError();
+
+        if (cudaStatus != cudaSuccess)
+        {
+            cerr << "Failed to launch deform bathymetry kernel : (error code : " << cudaGetErrorString(cudaStatus) << endl;
+        }
+
+        /*
+         * WAIT FOR ALL THREADS TO FINISH
+         * Host code needs to wait until this event is evaluated on all points of the grid.
+         * Only after this condition is met, the next fault event can be evaluated.
+         */
+        cudaStatus = cudaStreamSynchronize(stream);
+        if (cudaStatus != cudaSuccess)
+        {
+            cerr << "Error on cudaDeviceSynchronize" << endl;
+            cerr << cudaGetErrorString(cudaStatus) << " " << __FILE__ << " " << __LINE__ << endl;
+            cerr << "Error launching kernel" << endl;
+            return status::FAILURE;
+        }
+
+        return status::SUCCESS;
+    }
+
+    __host__ status deform(
         int rows,
         int columns,
         float x0lon,
@@ -390,9 +502,9 @@ namespace okada85gpu
         dim3 threadsPerBlock(16, 16); // Attempt to use all the 1024
         dim3 blocks((columns / threadsPerBlock.x) + 1, (rows / threadsPerBlock.y) + 1);
 
-        cout << "Blocks: " << blocks.x << " x " << blocks.y << endl;
-        cout << "Threads per block: " << threadsPerBlock.x << " x " << threadsPerBlock.y << endl;
-        cout << "Total threads: " << (blocks.x * threadsPerBlock.x) * (blocks.y * threadsPerBlock.y) << endl;
+        // cout << "Blocks: " << blocks.x << " x " << blocks.y << endl;
+        // cout << "Threads per block: " << threadsPerBlock.x << " x " << threadsPerBlock.y << endl;
+        // cout << "Total threads: " << (blocks.x * threadsPerBlock.x) * (blocks.y * threadsPerBlock.y) << endl;
 
         // For each one of the components
         for (int n = 0; n < nComponents; n++)
@@ -613,7 +725,7 @@ namespace okada85gpu
 
             // Calculate this thread offset on the 1D flattened array
             // (row * columns) + column
-            //int pos = (j * cuColumns) + i;
+            // int pos = (j * cuColumns) + i;
             int pos = devLinear2D(j, i);
 
             // Add to Uz
@@ -654,6 +766,57 @@ namespace okada85gpu
                 Uy[pos] = 0.0f;
             }
         } // If this thread is inside the grid
+    }
+
+    /**
+     * @brief Apply the calculated deformation on Uz, Ux and Uy to a bathymetry
+     *
+     * @param h Bathymetry
+     * @param Uz Deformation on the Z axis
+     * @param Ux Deformation on the X axis
+     * @param Uy Deformation on the Y axis
+     * @param Ub Calculated deformation on the bathymetry
+     * @return __global__
+     */
+    __global__ void deform_bathymetry_kernel(
+        float *h,
+        float *Uz,
+        float *Ux,
+        float *Uy,
+        float *Ub)
+    {
+        // Calculate this thread position on the grd
+        int i = blockIdx.x * blockDim.x + threadIdx.x;
+        int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+        // If this thread position is inside the grid
+        if (i < cuColumns && j < cuRows)
+        {
+            // Calculate this thread offset on the 1D flattened array
+            // (row * columns) + column
+            // int pos = (j * cuColumns) + i;
+            int pos = devLinear2D(j, i);
+
+            // Default to zero
+            Ub[pos] = 0.0f;
+
+            if (i >= 1 && i < cuColumns - 1 && j >= 1 && j < cuRows - 1)
+            {
+
+                int posLeft = devLinear2D(j, i - 1);
+                int posRight = devLinear2D(j, i + 1);
+                int posBelow = devLinear2D(j + 1, i);
+                int posAbove = devLinear2D(j - 1, i);
+
+                // Calculate surface deformation, only if bathymetry is greater than zero
+                Ub[pos] = ((isZero(h[posRight]) && isZero(h[posLeft])) ||
+                           (isZero(h[posBelow]) && isZero(h[posAbove])))
+                              ? Uz[pos]
+                              : Uz[pos] +
+                                    Ux[pos] * (h[posRight] - h[posLeft]) / (2.0f * cuDx) +
+                                    Uy[pos] * (h[posBelow] - h[posAbove]) / (2.0f * cuDy);
+            }
+        }
     }
 
     __noinline__ __device__ void chinneryStrikeSlip(
