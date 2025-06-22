@@ -7,16 +7,16 @@
  * @copyright MIT License
  */
 
+ #include "geo.h"
 #include "okada85cpu.h"
-
-#include "grid.h"
 
 namespace okada85cpu
 {
   // Begin namespace
 
-  using namespace grid;
+  using namespace geo;
   using namespace okada85;
+  using geo::pi;
 
   /**
    * @brief Checks if the absolute value ot the parameter is less than epsilon
@@ -254,7 +254,7 @@ namespace okada85cpu
       float q,
       float Eps);
 
-  status deform(
+  okadaStatus deform(
       int rows,
       int columns,
       float x0lon,
@@ -418,7 +418,7 @@ namespace okada85cpu
       } // For each element on the grid
     } // For each one of the components
 
-    return status::SUCCESS;
+    return okadaStatus::SUCCESS;
   }
 
   void chinneryStrikeSlip(

@@ -12,7 +12,6 @@
 
 #include <cmath>
 
-#include "globals.h"
 #include "okada85.h"
 
 /**
@@ -40,7 +39,7 @@ namespace okada85cpu
     * @param Uy (Output) Resulting deformation grid (Y direction - latitude) in a single array[width * height]
     * @note Caller must allocate memory for output parameters.
     */
-   status deform(
+   okadaStatus deform(
        int rows,
        int columns,
        float x0lon,

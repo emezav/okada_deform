@@ -231,6 +231,10 @@ your thoughts / changes to improve the original code, and please give credit whe
 
 Author: 2025 Erwin Meza Vega <emezav@unicauca.edu.co> <emezav@gmail.com>
 
+## Third party packages
+
+This project uses the [Geo single header library](https://github.com/emezav/geo) to save the resulting grids in ESRI ASCII format.
+
 MIT License
 
 ## References

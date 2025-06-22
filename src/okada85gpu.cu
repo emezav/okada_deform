@@ -9,14 +9,18 @@
 
 #include <iostream>
 
+#include "geo.h"
 #include "okada85gpu.cuh"
 
 namespace okada85gpu
 {
+    using namespace geo;
     using namespace okada85;
     using std::cerr;
     using std::cout;
     using std::endl;
+
+    using geo::pi;
 
     /**
      * @brief Parameter to check if a value is close to zero.
@@ -308,7 +312,7 @@ namespace okada85gpu
         float dTilde,
         float q);
 
-    __host__ status deform(
+    __host__ okadaStatus deform(
         float *h,
         int rows,
         int columns,
@@ -329,7 +333,7 @@ namespace okada85gpu
 
         cudaError_t cudaStatus;
 
-        status status = deform(
+        okadaStatus status = deform(
             rows,
             columns,
             x0lon,
@@ -345,7 +349,7 @@ namespace okada85gpu
             Ux,
             Uy);
 
-        if (status != status::SUCCESS)
+        if (status != okadaStatus::SUCCESS)
         {
             return status;
         }
@@ -356,7 +360,7 @@ namespace okada85gpu
         if (cudaStatus != cudaSuccess)
         {
             cerr << "Unable to create execution stream" << endl;
-            return status::FAILURE;
+            return okadaStatus::FAILURE;
         }
 
         // Launch a kernel on the GPU with one thread for each element.
@@ -386,13 +390,13 @@ namespace okada85gpu
             cerr << "Error on cudaDeviceSynchronize" << endl;
             cerr << cudaGetErrorString(cudaStatus) << " " << __FILE__ << " " << __LINE__ << endl;
             cerr << "Error launching kernel" << endl;
-            return status::FAILURE;
+            return okadaStatus::FAILURE;
         }
 
-        return status::SUCCESS;
+        return okadaStatus::SUCCESS;
     }
 
-    __host__ status deform(
+    __host__ okadaStatus deform(
         int rows,
         int columns,
         float x0lon,
@@ -446,7 +450,7 @@ namespace okada85gpu
         if (cudaStatus != cudaSuccess)
         {
             cerr << "Failed to copy constant Eps from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-            return status::FAILURE;
+            return okadaStatus::FAILURE;
         }
 
         // Mu/L constant
@@ -454,7 +458,7 @@ namespace okada85gpu
         if (cudaStatus != cudaSuccess)
         {
             cerr << "Failed to copy constant Mu_L from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-            return status::FAILURE;
+            return okadaStatus::FAILURE;
         }
 
         // Grid columns
@@ -462,7 +466,7 @@ namespace okada85gpu
         if (cudaStatus != cudaSuccess)
         {
             cerr << "Failed to copy constant columns from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-            return status::FAILURE;
+            return okadaStatus::FAILURE;
         }
 
         // Grid rows
@@ -470,7 +474,7 @@ namespace okada85gpu
         if (cudaStatus != cudaSuccess)
         {
             cerr << "Failed to copy constant rows from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-            return status::FAILURE;
+            return okadaStatus::FAILURE;
         }
 
         // Dx Grid X resolution
@@ -478,7 +482,7 @@ namespace okada85gpu
         if (cudaStatus != cudaSuccess)
         {
             cerr << "Failed to copy constant dx from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-            return status::FAILURE;
+            return okadaStatus::FAILURE;
         }
 
         // Grid Y resolution
@@ -486,7 +490,7 @@ namespace okada85gpu
         if (cudaStatus != cudaSuccess)
         {
             cerr << "Failed to copy constant dy from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-            return status::FAILURE;
+            return okadaStatus::FAILURE;
         }
 
         // Create a Stream for the kernels
@@ -495,7 +499,7 @@ namespace okada85gpu
         if (cudaStatus != cudaSuccess)
         {
             cerr << "Unable to create execution stream" << endl;
-            return status::FAILURE;
+            return okadaStatus::FAILURE;
         }
 
         // Launch a kernel on the GPU with one thread for each element.
@@ -558,7 +562,7 @@ namespace okada85gpu
             if (cudaStatus != cudaSuccess)
             {
                 cerr << "Failed to copy constant cs from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-                return status::FAILURE;
+                return okadaStatus::FAILURE;
             }
 
             // sin of dip
@@ -566,7 +570,7 @@ namespace okada85gpu
             if (cudaStatus != cudaSuccess)
             {
                 cerr << "Failed to copy constant sn from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-                return status::FAILURE;
+                return okadaStatus::FAILURE;
             }
 
             // cos of strike
@@ -574,7 +578,7 @@ namespace okada85gpu
             if (cudaStatus != cudaSuccess)
             {
                 cerr << "Failed to copy constant csStr from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-                return status::FAILURE;
+                return okadaStatus::FAILURE;
             }
 
             // sin of strike
@@ -582,7 +586,7 @@ namespace okada85gpu
             if (cudaStatus != cudaSuccess)
             {
                 cerr << "Failed to copy constant snStr from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-                return status::FAILURE;
+                return okadaStatus::FAILURE;
             }
 
             // tan of strike
@@ -590,7 +594,7 @@ namespace okada85gpu
             if (cudaStatus != cudaSuccess)
             {
                 cerr << "Failed to copy constant tnStr from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-                return status::FAILURE;
+                return okadaStatus::FAILURE;
             }
 
             // Fault length
@@ -598,7 +602,7 @@ namespace okada85gpu
             if (cudaStatus != cudaSuccess)
             {
                 cerr << "Failed to copy constant length from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-                return status::FAILURE;
+                return okadaStatus::FAILURE;
             }
 
             // Fault width
@@ -606,7 +610,7 @@ namespace okada85gpu
             if (cudaStatus != cudaSuccess)
             {
                 cerr << "Failed to copy constant width from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-                return status::FAILURE;
+                return okadaStatus::FAILURE;
             }
 
             // U1 component
@@ -614,7 +618,7 @@ namespace okada85gpu
             if (cudaStatus != cudaSuccess)
             {
                 cerr << "Failed to copy constant U1 from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-                return status::FAILURE;
+                return okadaStatus::FAILURE;
             }
 
             // U2 component
@@ -622,7 +626,7 @@ namespace okada85gpu
             if (cudaStatus != cudaSuccess)
             {
                 cerr << "Failed to copy constant U2 from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-                return status::FAILURE;
+                return okadaStatus::FAILURE;
             }
 
             // U3 component
@@ -630,7 +634,7 @@ namespace okada85gpu
             if (cudaStatus != cudaSuccess)
             {
                 cerr << "Failed to copy constant U3 from host to device (error code " << cudaGetErrorString(cudaStatus) << ")" << endl;
-                return status::FAILURE;
+                return okadaStatus::FAILURE;
             }
 
             // Calculate the deformation on the grid caused by this fault event.
@@ -664,11 +668,11 @@ namespace okada85gpu
                 cerr << "Error on cudaDeviceSynchronize" << endl;
                 cerr << cudaGetErrorString(cudaStatus) << " " << __FILE__ << " " << __LINE__ << endl;
                 cerr << "Error launching kernel" << endl;
-                return status::FAILURE;
+                return okadaStatus::FAILURE;
             }
         }
 
-        return status::SUCCESS;
+        return okadaStatus::SUCCESS;
     }
 
     /** ============ Device kernels implementation ==================== */

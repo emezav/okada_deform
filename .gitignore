@@ -9,3 +9,7 @@ build/
 build/*
 *.asc
 *.asc.*
+*.pdb
+*.prj
+third_party/
+third_party/*

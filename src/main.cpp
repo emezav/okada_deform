@@ -10,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <filesystem>
+#include <iostream>
 #include <iomanip>
 #include <tuple>
 #include <vector>
@@ -17,7 +18,7 @@
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 #include "Env.h"
-#include "grid.h"
+#include "geo.h"
 #include "okada85cpu.h"
 #include "okada85gpu.cuh"
 #include "Timer.h"
@@ -26,11 +27,18 @@ using std::cerr;
 using std::cout;
 using std::endl;
 using std::vector;
+using std::tuple;
 
-using namespace grid;
 using namespace okada85;
 
 namespace fs = std::filesystem;
+
+enum class status : int
+  {
+    SUCCESS = 0,  /*!< OK */
+    FAILURE = -1, /*!< Operation was not successful. */
+  };
+
 
 /**
  * @brief Allocates host memory for the result grids
@@ -511,12 +519,16 @@ status deformCpu(const char *path, bool createGrids, float &elapsedTime)
     if (createGrids)
     {
         cout << "Saving cpu results..." << endl;
+
+        // Calculate cellsize in degrees
+        auto [dxDeg, dyDeg] = geo::cellSizeDegrees(y0ll, dx, dy);
+
         // Save results to ASCII grid files
-        grid::saveAsciiGrid(uzPath.string().c_str(), Uz, rows, columns, x0ll, y0ll, dx, dy);
+        geo::Esri::saveAscii(uzPath.string().c_str(), Uz, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  z: " << uzPath.string() << endl;
-        grid::saveAsciiGrid(uxPath.string().c_str(), Ux, rows, columns, x0ll, y0ll, dx, dy);
+        geo::Esri::saveAscii(uxPath.string().c_str(), Ux, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  x: " << uxPath.string() << endl;
-        grid::saveAsciiGrid(uyPath.string().c_str(), Uy, rows, columns, x0ll, y0ll, dx, dy);
+        geo::Esri::saveAscii(uyPath.string().c_str(), Uy, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  y: " << uyPath.string() << endl;
     }
 
@@ -587,7 +599,7 @@ status deformGpu(const char *path, bool createGrids, float &elapsedTime)
     t.mark("start");
 
     // Run the simulation on GPU
-    status = okada85gpu::deform(
+    okadaStatus deformResult = okada85gpu::deform(
         rows,
         columns,
         x0ll,
@@ -602,7 +614,7 @@ status deformGpu(const char *path, bool createGrids, float &elapsedTime)
     // Get elapsed seconds from start timestamp before any output is performed
     elapsedTime = t.seconds("start");
 
-    if (status != status::SUCCESS)
+    if (deformResult != okadaStatus::SUCCESS)
     {
         cerr << "GPU deformation failed." << endl;
         releaseHostMemory({Uz, Us, Ud, Ux, Uy});
@@ -639,12 +651,15 @@ status deformGpu(const char *path, bool createGrids, float &elapsedTime)
             cerr << "Unable to copy device Uy to host" << cudaGetErrorString(cudaStatus) << endl;
         }
 
+        // Calculate cellsize in degrees
+        auto [dxDeg, dyDeg] = geo::cellSizeDegrees(y0ll, dx, dy);
+
         // Save results to ASCII grid files
-        grid::saveAsciiGrid(uzPath.string().c_str(), Uz, rows, columns, x0ll, y0ll, dx, dy);
+        geo::Esri::saveAscii(uzPath.string().c_str(), Uz, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  z: " << uzPath.string() << endl;
-        grid::saveAsciiGrid(uxPath.string().c_str(), Ux, rows, columns, x0ll, y0ll, dx, dy);
+        geo::Esri::saveAscii(uxPath.string().c_str(), Ux, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  x: " << uxPath.string() << endl;
-        grid::saveAsciiGrid(uyPath.string().c_str(), Uy, rows, columns, x0ll, y0ll, dx, dy);
+        geo::Esri::saveAscii(uyPath.string().c_str(), Uy, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  y: " << uyPath.string() << endl;
     }
 

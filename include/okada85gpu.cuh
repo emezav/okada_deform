@@ -38,7 +38,7 @@ namespace okada85gpu
      * @param Uy (Output) Resulting deformation grid (Y direction - latitude) in a single array[width * height]
      * @note Caller must allocate memory for output parameters.
      */
-    __host__ status deform(
+    __host__ okadaStatus deform(
         int rows,
         int columns,
         float x0lon,
@@ -74,7 +74,7 @@ namespace okada85gpu
      * @param Ub (Output) Resulting deformation on the bathymetry
      * @note Caller must allocate memory for output parameters.
      */
-    __host__ status deform(
+    __host__ okadaStatus deform(
         float * h,
         int rows,
         int columns,

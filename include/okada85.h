@@ -10,14 +10,34 @@
 #ifndef OKADA85_H
 #define OKADA85_H
 
-#include "globals.h"
-
 /**
  * @brief Common definitions for the Okada model.
- * 
+ *
  */
 namespace okada85
 {
+
+  /** @brief Value of pi */
+  constexpr auto pi = 3.14159265358979323846;
+
+  /**
+   * @brief Degrees to radians
+   * @param d Degrees
+   * @return Radians
+   */
+  inline float radians(float d)
+  {
+    return ((d) * (pi / 180.0f));
+  }
+
+  /**
+   * @brief Status of the operation.
+   */
+  enum class okadaStatus : int
+  {
+    SUCCESS = 0,  /*!< OK */
+    FAILURE = -1, /*!< Operation was not successful. */
+  };
 
   /**
    * @brief Fault component.

@@ -37,6 +37,43 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # Create compile_commands.json
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
+# Configure external package references
+set(EXTERNAL_PACKAGES
+  "geo|https://github.com/emezav/geo.git"
+)
+
+# Directory to save external dependencies
+set(EXTERNAL_PACKAGES_DIR "${CMAKE_SOURCE_DIR}/third_party")
+
+message(STATUS "Checking out third party packages...")
+file(MAKE_DIRECTORY ${EXTERNAL_PACKAGES_DIR})
+
+foreach(EXT_P IN LISTS EXTERNAL_PACKAGES)
+  string(REPLACE "|" ";" EXT_REPO ${EXT_P})
+
+  list(GET EXT_REPO 0 REPO_NAME)
+  list(GET EXT_REPO 1 REPO_URL)
+
+  if(NOT EXISTS "${EXTERNAL_PACKAGES_DIR}/${REPO_NAME}")
+    message(STATUS "Cloning ${REPO_NAME} from ${REPO_URL}")
+    # Fetch repo
+    execute_process(
+      COMMAND git clone ${REPO_URL} "${EXTERNAL_PACKAGES_DIR}/${REPO_NAME}"
+      RESULT_VARIABLE CLONE_RESULT)
+    if(CLONE_RESULT EQUAL 0)
+      message(STATUS "${EXT_P} downloaded successfully.")
+    else()
+      message(FATAL_ERROR "Command failed with exit code: ${CMD_RESULT}")
+    endif()
+  else()
+    message(STATUS "${REPO_NAME} already cloned.")
+  endif()
+endforeach()
+
+# Copy files from third party packages
+# geo header
+file(COPY "${CMAKE_SOURCE_DIR}/third_party/geo/include/geo.h" DESTINATION "${CMAKE_SOURCE_DIR}/include")
+
 # Add c/c++ headers and sources
 file(GLOB cpu_source_files "${CMAKE_SOURCE_DIR}/src/*.cpp" "${CMAKE_SOURCE_DIR}/include/*.h")
 
