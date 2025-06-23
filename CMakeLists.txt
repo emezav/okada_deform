@@ -35,7 +35,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # Create compile_commands.json
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON )
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Configure external package references
 set(EXTERNAL_PACKAGES
@@ -45,34 +45,38 @@ set(EXTERNAL_PACKAGES
 # Directory to save external dependencies
 set(EXTERNAL_PACKAGES_DIR "${CMAKE_SOURCE_DIR}/third_party")
 
-message(STATUS "Checking out third party packages...")
-file(MAKE_DIRECTORY ${EXTERNAL_PACKAGES_DIR})
+if(NOT EXISTS "${EXTERNAL_PACKAGES_DIR}")
+  message(STATUS "Checking out third party packages...")
+  file(MAKE_DIRECTORY ${EXTERNAL_PACKAGES_DIR})
+  foreach(EXT_P IN LISTS EXTERNAL_PACKAGES)
+    string(REPLACE "|" ";" EXT_REPO ${EXT_P})
 
-foreach(EXT_P IN LISTS EXTERNAL_PACKAGES)
-  string(REPLACE "|" ";" EXT_REPO ${EXT_P})
+    list(GET EXT_REPO 0 REPO_NAME)
+    list(GET EXT_REPO 1 REPO_URL)
 
-  list(GET EXT_REPO 0 REPO_NAME)
-  list(GET EXT_REPO 1 REPO_URL)
-
-  if(NOT EXISTS "${EXTERNAL_PACKAGES_DIR}/${REPO_NAME}")
-    message(STATUS "Cloning ${REPO_NAME} from ${REPO_URL}")
-    # Fetch repo
-    execute_process(
-      COMMAND git clone ${REPO_URL} "${EXTERNAL_PACKAGES_DIR}/${REPO_NAME}"
-      RESULT_VARIABLE CLONE_RESULT)
-    if(CLONE_RESULT EQUAL 0)
-      message(STATUS "${EXT_P} downloaded successfully.")
+    if(NOT EXISTS "${EXTERNAL_PACKAGES_DIR}/${REPO_NAME}")
+      message(STATUS "Cloning ${REPO_NAME} from ${REPO_URL}")
+      # Fetch repo
+      execute_process(
+        COMMAND git clone ${REPO_URL} "${EXTERNAL_PACKAGES_DIR}/${REPO_NAME}"
+        RESULT_VARIABLE CLONE_RESULT)
+      if(CLONE_RESULT EQUAL 0)
+        message(STATUS "${EXT_P} downloaded successfully.")
+      else()
+        message(FATAL_ERROR "Command failed with exit code: ${CMD_RESULT}")
+      endif()
     else()
-      message(FATAL_ERROR "Command failed with exit code: ${CMD_RESULT}")
+      message(STATUS "${REPO_NAME} already cloned.")
     endif()
-  else()
-    message(STATUS "${REPO_NAME} already cloned.")
-  endif()
-endforeach()
+  endforeach()
 
-# Copy files from third party packages
-# geo header
-file(COPY "${CMAKE_SOURCE_DIR}/third_party/geo/include/geo.h" DESTINATION "${CMAKE_SOURCE_DIR}/include")
+
+  # Copy files from third party packages
+  # geo header
+  file(COPY "${CMAKE_SOURCE_DIR}/third_party/geo/include/geo.h" DESTINATION "${CMAKE_SOURCE_DIR}/include")
+
+
+endif()
 
 # Add c/c++ headers and sources
 file(GLOB cpu_source_files "${CMAKE_SOURCE_DIR}/src/*.cpp" "${CMAKE_SOURCE_DIR}/include/*.h")
@@ -87,7 +91,7 @@ include_directories(${CMAKE_SOURCE_DIR}/include)
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 # Add executable to the project
-add_executable (${PROJECT_NAME} ${cpu_source_files} ${gpu_source_files})
+add_executable(${PROJECT_NAME} ${cpu_source_files} ${gpu_source_files})
 
 # Add CUDA::* (depending on project requirements) to link libraries
 #target_link_libraries(${PROJECT_NAME} PRIVATE CUDA::cudart <..other cuda libraries..>)
@@ -109,8 +113,8 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY LINK_FLAGS ${PROJ_LINK_FLAGS})
 set_property(TARGET ${PROJECT_NAME} PROPERTY CUDA_ARCHITECTURES native)
 
 # Set debugger working directory to source dir
-set_property(TARGET ${PROJECT_NAME}  PROPERTY DEBUGGER_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set_property(TARGET ${PROJECT_NAME} PROPERTY DEBUGGER_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 # Set debugger working directory to source dir (for Visual Studio)
-set_property(TARGET ${PROJECT_NAME}  PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+set_property(TARGET ${PROJECT_NAME} PROPERTY VS_DEBUGGER_WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 

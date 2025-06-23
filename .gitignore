@@ -13,3 +13,4 @@ build/*
 *.prj
 third_party/
 third_party/*
+include/geo.h

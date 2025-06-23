@@ -709,8 +709,8 @@ namespace geo
         {"surferascii", GridFormat::SURFER_ASCII},
         {"surfer6", GridFormat::SURFER_FLOAT},
         {"surfer7", GridFormat::SURFER_DOUBLE},
-        {"txt", GridFormat::TEXT},
-        {"txtreverse", GridFormat::TEXT_REVERSE}};
+        {"txtfrf", GridFormat::TEXT},
+        {"txtlrf", GridFormat::TEXT_REVERSE}};
 
     /**
      * @brief Get the format from a string
@@ -935,11 +935,6 @@ namespace geo
     static inline std::tuple<double, double> cellSizeDegrees(double lat, double dxM, double dyM)
     {
 
-        if (dxM == 0.0f || dyM == 0.0f)
-        {
-            return {0.0f, 0.0f};
-        }
-
         // Get the distance of 1 arc second in meters at lat
         auto [arcSecLon, arcSecLat] = arcSecMeters(lat);
 
@@ -949,6 +944,26 @@ namespace geo
         double dyDeg = (dyM / arcSecLat) / 3600.0f;
 
         return {dxDeg, dyDeg};
+    }
+
+    /**
+     * @brief Calculates the grid cell size in meters.
+     * @param lat Latitude where the resolution is calculated.
+     * @param dxDeg Grid X resolution in decimal degrees
+     * @param dyDeg  Grid Y resolution in decimal degrees
+     * @return std::tuple<double, double> X, Y resolution in meters
+     */
+    static inline std::tuple<double, double> cellSizeMeters(double lat, double dxDeg, double dyDeg)
+    {
+
+        // Get the distance of 1 arc second in meters at lat
+        auto [arcSecLon, arcSecLat] = arcSecMeters(lat);
+
+        // Convert decimal degrees to arc seconds and multiply by the amount of meters in one arc second
+        double dxM = (dxDeg * 3600.0f) * arcSecLon;
+        double dyM = (dyDeg * 3600.0f) * arcSecLat;
+
+        return {dxM, dyM};
     }
 
     /**
@@ -2383,7 +2398,16 @@ namespace geo
             return this->data[(row * columns) + column];
         }
 
-        float equalsAt(const Grid &rhs, int row, int column, float rpe = 1.0f) const
+        /**
+         * @brief Checks if two grid values match
+         *
+         * @param rhs Other grid
+         * @param row row on the other grid
+         * @param column column on the other grid
+         * @param rpe Relative percent error
+         * @return bool True if relative difference is less than rpe, false otherwise.
+         */
+        bool equalsAt(const Grid &rhs, int row, int column, float rpe = 1.0f) const
         {
             const float valueA = (*this)(row, column);
             const float valueB = rhs(row, column);
