@@ -53,7 +53,7 @@ namespace okada85gpu
         float *Ud,
         float *Ux,
         float *Uy);
-    
+
     /**
      * @brief Deformation due to shear and tensile faults in half-space
      * @param h Bathymetry to be deformed
