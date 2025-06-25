@@ -34,7 +34,7 @@ After cloning this repository:
 - On Windows, Visual Studio which contains the cl.exe compiler is required.
 - Clone this repository
 - Open the project folder in VS Code, wait for CMake configuration to be performed automatically.
-- Some prompts are presented, configure the build to amd64 (64 bits) to ensurwe compatibility with the installed CUDA libraries.
+- Some prompts are presented, configure the build to amd64 (64 bits) to ensure compatibility with the installed CUDA libraries.
 - After the cmake configuration is done, run the executable and supply a configuration file.
 - Visualize the results using a text editor or GIS software.
 
@@ -195,7 +195,7 @@ are approximate values. A literature review must be performed to get the accurat
 - chile_1960.txt: Single fault plane similar to the event that caused the 1960 earthquake in Chile. The source of this event is described in [7].
 - ecuador.txt: Single fault plane for an event near event that caused the of Ecuador.
 - tonga.txt: Single fault plane for an event near the island of Tonga, South Pacific.
-- huge_grid_1.txt: THIS SCENARIO MIGT FAIL on CUDA devices with less than 18 GB memory on the GPU! You have been warned.
+- huge_grid_1.txt: THIS SCENARIO MIGHT FAIL on CUDA devices with less than 18 GB memory on the GPU! You have been warned.
 
 Some other configurations are provided. Feel free to create copies of the files and modify the grid and fault plane parameters.
 QGIS is recommended to visualize the resulting grids.
