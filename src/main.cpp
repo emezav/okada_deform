@@ -17,6 +17,9 @@
 
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+
+
+#include "cuda_common.h"
 #include "Env.h"
 #include "geo.h"
 #include "okada85cpu.h"
@@ -224,30 +227,6 @@ std::tuple<status, float *, float *, float *, float *, float *> allocateDeviceGr
     }
 
     return {status::SUCCESS, d_Uz, d_Us, d_Ud, d_Ux, d_Uy};
-}
-
-/**
- * @brief Releases host memory for the supplied pointers
- * @param  pointers Vector of pointers to free
- */
-void releaseHostMemory(std::vector<void *> pointers)
-{
-    for (auto ptr : pointers)
-    {
-        free(ptr);
-    }
-}
-
-/**
- * @brief Releases device memory for the supplied pointers
- * @param  pointers Vector of pointers to free
- */
-void releaseDeviceMemory(std::vector<void *> pointers)
-{
-    for (auto ptr : pointers)
-    {
-        cudaFree(ptr);
-    }
 }
 
 /**

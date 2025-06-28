@@ -44,7 +44,7 @@ cudaError_t allocateAndZeroHostMemory(T **h_ptr, size_t n)
     // Allocate and zero host memory
     void * ptr = calloc(n, sizeof(T));
     if (ptr != NULL) {
-        *h_ptr = ptr;
+        *h_ptr = static_cast<T*>(ptr);
         return cudaSuccess;
     }
     return cudaError::cudaErrorMemoryAllocation;
@@ -135,8 +135,7 @@ cudaError_t copyToDevice(T *h_ptr, T *d_ptr, size_t n)
  * @brief Releases host memory for the supplied pointers
  * @param  pointers Vector of T* pointers to free
  */
-template <class T>
-void releaseHostMemory(std::vector<T *> pointers)
+static inline void __host__ releaseHostMemory(std::vector< void *> pointers)
 {
   for (auto ptr : pointers)
   {
@@ -146,15 +145,13 @@ void releaseHostMemory(std::vector<T *> pointers)
 
 /**
  * @brief Releases device memory for the supplied pointers
- * @param  pointers Vector of T* pointers to free
+ * @param  pointers Vector of pointers to free
  */
-template <class T>
-void releaseDeviceMemory(std::vector<T *> pointers)
+static inline void __host__ releaseDeviceMemory(std::vector<void *> pointers)
 {
   for (auto ptr : pointers)
   {
     cudaFree(ptr);
   }
 }
-
 #endif
