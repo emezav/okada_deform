@@ -118,13 +118,23 @@ namespace okada85gpu
     }
 
     /**
-     * @brief Returns the linear position for an element inside a 2D array, Row Major
+     * @brief Returns the linear position for an element inside a 2D array, row first
      * @param row Row
      * @param column Column
-     * @param columns Total of columns
      * @return Linear position
      */
-    __forceinline__ __device__ int devLinear2D(int row, int column)
+    __forceinline__ __device__ int linRC(int row, int column)
+    {
+        return (row * cuColumns) + column;
+    }
+
+    /**
+     * @brief Returns the linear position for an element inside a 2D array, column first
+     * @param column Column
+     * @param row Row
+     * @return Linear position
+     */
+    __forceinline__ __device__ int linCR(int column, int row)
     {
         return (row * cuColumns) + column;
     }
@@ -327,8 +337,8 @@ namespace okada85gpu
         float *Us,
         float *Ud,
         float *Ux,
-        float *Uy, 
-        float * Ub)
+        float *Uy,
+        float *Ub)
     {
 
         cudaError_t cudaStatus;
@@ -730,7 +740,7 @@ namespace okada85gpu
             // Calculate this thread offset on the 1D flattened array
             // (row * columns) + column
             // int pos = (j * cuColumns) + i;
-            int pos = devLinear2D(j, i);
+            int pos = linCR(i, j);
 
             // Add to Uz
             Uz[pos] += uzStr + uzDip;
@@ -799,7 +809,7 @@ namespace okada85gpu
             // Calculate this thread offset on the 1D flattened array
             // (row * columns) + column
             // int pos = (j * cuColumns) + i;
-            int pos = devLinear2D(j, i);
+            int pos = linCR(i, j);
 
             // Default to zero
             Ub[pos] = 0.0f;
@@ -807,10 +817,10 @@ namespace okada85gpu
             if (i >= 1 && i < cuColumns - 1 && j >= 1 && j < cuRows - 1)
             {
 
-                int posLeft = devLinear2D(j, i - 1);
-                int posRight = devLinear2D(j, i + 1);
-                int posBelow = devLinear2D(j + 1, i);
-                int posAbove = devLinear2D(j - 1, i);
+                int posLeft = linCR(i - 1, j);
+                int posRight = linCR(i + 1, j);
+                int posBelow = linCR(i, j + 1);
+                int posAbove = linCR(i, j - 1);
 
                 // Calculate surface deformation, only if bathymetry is greater than zero
                 Ub[pos] = ((isZero(h[posRight]) && isZero(h[posLeft])) ||
