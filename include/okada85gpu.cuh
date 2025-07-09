@@ -90,7 +90,8 @@ namespace okada85gpu
         float *Ud,
         float *Ux,
         float *Uy,
-        float * Ub);
+        float * Ub,
+        bool invbat=true);
 }
 
 #endif

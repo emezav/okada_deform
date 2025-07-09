@@ -175,7 +175,8 @@ namespace okada85gpu
         float *Uz,
         float *Ux,
         float *Uy,
-        float *Ub);
+        float *Ub,
+        bool invbat);
 
     /**
      * @brief Calculates Chinnery's strike / slip (25) PP. 1144 for (24) PP. 1143
@@ -338,7 +339,8 @@ namespace okada85gpu
         float *Ud,
         float *Ux,
         float *Uy,
-        float *Ub)
+        float *Ub,
+        bool invbat)
     {
 
         cudaError_t cudaStatus;
@@ -379,7 +381,7 @@ namespace okada85gpu
 
         // Calculate the deformation on the grid caused by this fault event.
         // All other parameters have been calculated and sent to the device as constants.
-        deform_bathymetry_kernel<<<blocks, threadsPerBlock, 0, stream>>>(h, Uz, Ux, Uy, Ub);
+        deform_bathymetry_kernel<<<blocks, threadsPerBlock, 0, stream>>>(h, Uz, Ux, Uy, Ub, invbat);
 
         // Execution error?
         cudaStatus = cudaGetLastError();
@@ -487,7 +489,7 @@ namespace okada85gpu
             return okadaStatus::FAILURE;
         }
 
-        // Dx Grid X resolution
+        // Grid X resolution
         cudaStatus = cudaMemcpyToSymbol((const void *)&cuDx, &dx, sizeof(float), 0, cudaMemcpyHostToDevice);
         if (cudaStatus != cudaSuccess)
         {
@@ -797,11 +799,18 @@ namespace okada85gpu
         float *Uz,
         float *Ux,
         float *Uy,
-        float *Ub)
+        float *Ub,
+        bool invbat)
     {
         // Calculate this thread position on the grd
         int i = blockIdx.x * blockDim.x + threadIdx.x;
         int j = blockIdx.y * blockDim.y + threadIdx.y;
+
+        float factor = 1.0f;
+        if (invbat)
+        {
+            factor = -1.0f;
+        }
 
         // If this thread position is inside the grid
         if (i < cuColumns && j < cuRows)
@@ -822,13 +831,28 @@ namespace okada85gpu
                 int posBelow = linCR(i, j + 1);
                 int posAbove = linCR(i, j - 1);
 
+                int hPos = h[pos] * factor;
+                int hRight = h[posRight] * factor;
+                int hLeft = h[posLeft] * factor;
+                int hBelow = h[posBelow] * factor;
+                int hAbove = h[posAbove] * factor;
+
+                hPos = (hPos <= 0.0f) ? 0.0f : hPos;
+                hRight = (hRight <= 0.0f) ? 0.0f : hRight;
+                hLeft = (hLeft <= 0.0f) ? 0.0f : hLeft;
+                hBelow = (hBelow <= 0.0f) ? 0.0f : hBelow;
+                hAbove = (hAbove <= 0.0f) ? 0.0f : hAbove;
+
+                Ub[pos] = Uz[pos] +
+                          Ux[pos] * (hRight - hLeft) / (2.0f * cuDx) +
+                          Uy[pos] * (hBelow - hAbove) / (2.0f * cuDy);
+
                 // Calculate surface deformation, only if bathymetry is greater than zero
-                Ub[pos] = ((isZero(h[posRight]) && isZero(h[posLeft])) ||
-                           (isZero(h[posBelow]) && isZero(h[posAbove])))
-                              ? Uz[pos]
-                              : Uz[pos] +
-                                    Ux[pos] * (h[posRight] - h[posLeft]) / (2.0f * cuDx) +
-                                    Uy[pos] * (h[posBelow] - h[posAbove]) / (2.0f * cuDy);
+                if ((isZero(hRight) && isZero(hLeft)) ||
+                    (isZero(hBelow) && isZero(hAbove)))
+                {
+                    Ub[pos] = Uz[pos];
+                }
             }
         }
     }
