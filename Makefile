@@ -13,7 +13,7 @@ build: $(SOURCES)
 	nvcc -o $(EXECUTABLE) --std=c++17 -I./include  $(SOURCES)
 
 clean:
-	rm -rf $(EXECUTABLE) samples/*.asc* docs
+	rm -rf $(EXECUTABLE) samples/*.bil samples/*.hdr samples/*.prj docs
 
 doc:
 	doxygen

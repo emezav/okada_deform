@@ -418,10 +418,10 @@ void usage(const char *program)
     cerr << "Usage: " << program << " SCENARIO.txt [true | false]" << endl
          << endl
          << " Loads the configuration from SCENARIO.txt and outputs " << endl
-         << " Ux, Uy and Uz to SCENARIO_x.asc, SCENARIO_y.asc and SCENARIO_z.asc" << endl
+         << " Ux, Uy and Uz to SCENARIO_x.bil, SCENARIO_y.bil and SCENARIO_z.bil" << endl
          << " Set the second command line argument to argument to false if you don't want the output grids to be created." << endl
          << " Example: " << endl
-         << "  # Simulates scenario from samples/scenario1.txt and writes output grids to samples/scenario1_x.asc, ..." << endl
+         << "  # Simulates scenario from samples/scenario1.txt and writes output grids to samples/scenario1_x.bil, ..." << endl
          << "  " << program << " samples/scenario1.txt" << endl
          << endl
          << "  # Simulates scenario from samples/scenario1.txt but does not create output grids:" << endl
@@ -442,9 +442,9 @@ status deformCpu(const char *path, bool createGrids, float &elapsedTime)
     fs::path uxPath(p);
     fs::path uyPath(p);
 
-    uzPath.replace_filename(filenameWithoutExt + "_cpu_z.asc");
-    uxPath.replace_filename(filenameWithoutExt + "_cpu_x.asc");
-    uyPath.replace_filename(filenameWithoutExt + "_cpu_y.asc");
+    uzPath.replace_filename(filenameWithoutExt + "_cpu_z.bil");
+    uxPath.replace_filename(filenameWithoutExt + "_cpu_x.bil");
+    uyPath.replace_filename(filenameWithoutExt + "_cpu_y.bil");
 
     // Load scenario
     auto [status, x0ll, y0ll, rows, columns, dx, dy, components, nComponents] = loadScenario(path);
@@ -502,12 +502,12 @@ status deformCpu(const char *path, bool createGrids, float &elapsedTime)
         // Calculate cellsize in degrees
         auto [dxDeg, dyDeg] = geo::cellSizeDegrees(y0ll, dx, dy);
 
-        // Save results to ASCII grid files
-        geo::Esri::saveAscii(uzPath.string().c_str(), Uz, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
+        // Save results to grid files
+        geo::saveGrid(uzPath.string().c_str(), Uz, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  z: " << uzPath.string() << endl;
-        geo::Esri::saveAscii(uxPath.string().c_str(), Ux, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
+        geo::saveGrid(uxPath.string().c_str(), Ux, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  x: " << uxPath.string() << endl;
-        geo::Esri::saveAscii(uyPath.string().c_str(), Uy, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
+        geo::saveGrid(uyPath.string().c_str(), Uy, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  y: " << uyPath.string() << endl;
     }
 
@@ -538,9 +538,9 @@ status deformGpu(const char *path, bool createGrids, float &elapsedTime)
     fs::path uxPath(p);
     fs::path uyPath(p);
 
-    uzPath.replace_filename(filenameWithoutExt + "_gpu_z.asc");
-    uxPath.replace_filename(filenameWithoutExt + "_gpu_x.asc");
-    uyPath.replace_filename(filenameWithoutExt + "_gpu_y.asc");
+    uzPath.replace_filename(filenameWithoutExt + "_gpu_z.bil");
+    uxPath.replace_filename(filenameWithoutExt + "_gpu_x.bil");
+    uyPath.replace_filename(filenameWithoutExt + "_gpu_y.bil");
 
     // Load scenario
     auto [status, x0ll, y0ll, rows, columns, dx, dy, components, nComponents] = loadScenario(path);
@@ -633,12 +633,12 @@ status deformGpu(const char *path, bool createGrids, float &elapsedTime)
         // Calculate cellsize in degrees
         auto [dxDeg, dyDeg] = geo::cellSizeDegrees(y0ll, dx, dy);
 
-        // Save results to ASCII grid files
-        geo::Esri::saveAscii(uzPath.string().c_str(), Uz, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
+        // Save results to grid files
+        geo::saveGrid(uzPath.string().c_str(), Uz, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  z: " << uzPath.string() << endl;
-        geo::Esri::saveAscii(uxPath.string().c_str(), Ux, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
+        geo::saveGrid(uxPath.string().c_str(), Ux, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  x: " << uxPath.string() << endl;
-        geo::Esri::saveAscii(uyPath.string().c_str(), Uy, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
+        geo::saveGrid(uyPath.string().c_str(), Uy, rows, columns, x0ll, y0ll, dxDeg, dyDeg);
         cout << "  y: " << uyPath.string() << endl;
     }
 

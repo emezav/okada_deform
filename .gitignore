@@ -11,6 +11,9 @@ build/*
 *.asc.*
 *.pdb
 *.prj
+*.hdr
+*.bil
+*.aux.xml
 third_party/
 third_party/*
 include/geo.h

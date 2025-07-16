@@ -170,16 +170,16 @@ The samples/ folder contains some input configuration examples.
 
 The program calculates and stores the results on several files, using the scenario filename as a template.
 
-For an input configuration called "test.txt", the program stores the results on several ESRI ASCII grids (.asc) described as follows:
+For an input configuration called "test.txt", the program stores the results on several ESRI Float grids (.bil) described as follows:
 
 - Input: test.txt
-- test_z.asc: Deformation on the Z axis (up-down)
-- test_x.asc: Deformation on the X axis (East-West)
-- test_y.asc: Deformation on the Y axis (North-South)
+- test_z.bil: Deformation on the Z axis (up-down)
+- test_x.bil: Deformation on the X axis (East-West)
+- test_y.bil: Deformation on the Y axis (North-South)
 
 Some other intermediate results are calculated by the model but they aren't saved into files.
 
-ESRI ASCII grid files can be opened and visualized by several GIS programs such as:
+ESRI Float grid files can be opened and visualized by several GIS programs such as:
 
 - QGIS [3] (free). Recommended.
 - Surfer [4] (propietary).
@@ -233,7 +233,7 @@ Author: 2025 Erwin Meza Vega <emezav@unicauca.edu.co> <emezav@gmail.com>
 
 ## Third party packages
 
-This project uses the [Geo single header library](https://github.com/emezav/geo) to save the resulting grids in ESRI ASCII format.
+This project uses the [Geo single header library](https://github.com/emezav/geo) to save the resulting grids in ESRI Float binary format.
 
 MIT License
 
