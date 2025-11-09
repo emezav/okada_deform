@@ -36,6 +36,9 @@ using namespace okada85;
 
 namespace fs = std::filesystem;
 
+/**
+ * @brief Status codes
+ */
 enum class status : int
   {
     SUCCESS = 0,  /*!< OK */

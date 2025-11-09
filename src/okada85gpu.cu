@@ -168,7 +168,7 @@ namespace okada85gpu
      * @param Ux Deformation on the X axis
      * @param Uy Deformation on the Y axis
      * @param Ub Calculated deformation on the bathymetry
-     * @return __global__
+     * @param invbat If true, the bathymetry is inverted before applying deformation
      */
     __global__ void deform_bathymetry_kernel(
         float *h,
@@ -784,16 +784,6 @@ namespace okada85gpu
         } // If this thread is inside the grid
     }
 
-    /**
-     * @brief Apply the calculated deformation on Uz, Ux and Uy to a bathymetry
-     *
-     * @param h Bathymetry
-     * @param Uz Deformation on the Z axis
-     * @param Ux Deformation on the X axis
-     * @param Uy Deformation on the Y axis
-     * @param Ub Calculated deformation on the bathymetry
-     * @return __global__
-     */
     __global__ void deform_bathymetry_kernel(
         float *h,
         float *Uz,

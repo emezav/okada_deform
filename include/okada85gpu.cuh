@@ -72,6 +72,7 @@ namespace okada85gpu
      * @param Ux (Output) Resulting deformation grid (X direction - longitude) in a single array[width * height]
      * @param Uy (Output) Resulting deformation grid (Y direction - latitude) in a single array[width * height]
      * @param Ub (Output) Resulting deformation on the bathymetry
+     * @param invbat If true, the bathymetry is inverted before applying deformation
      * @note Caller must allocate memory for output parameters.
      */
     __host__ okadaStatus deform(

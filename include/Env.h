@@ -2,7 +2,6 @@
 /**
  * @file
  * @brief Get values from environment
- * @ingroup utilities
  * @author Erwin Meza Vega <emezav@unicauca.edu.co>, <emezav@gmail.com>
  * @copyright MIT License
  *

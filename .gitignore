@@ -7,6 +7,9 @@
 *.exe
 build/
 build/*
+docs/
+docs/*
+*.log
 *.asc
 *.asc.*
 *.pdb
