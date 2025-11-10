@@ -134,32 +134,16 @@
         "singleInstance": true,
         "command": "cd build && cmake --build . --config Release --target clean && cmake --build . --config Release",
       },
-      /*
       {
-        "name": "Single fault 1 (Linux)",
+        "name": "Build Debug (cmake)",
         "singleInstance": true,
-        "command": "make && ./run.sh samples/single_fault_1.txt",
+        "command": "cd build && cmake --build . --config Debug",
       },
       {
-        "name": "Multiple fault 1 (Linux)",
+        "name": "Build Release (cmake)",
         "singleInstance": true,
-        "command": "make &&  ./run.sh samples/multiple_faults_1.txt",
+        "command": "cd build && cmake --build . --config Release",
       },
-      {
-        "name": "Multiple faults 2 (Linux)",
-        "singleInstance": true,
-        "command": "make &&  ./run.sh samples/multiple_faults_2.txt",
-      },
-      {
-        "name": "Chile 1960 (Linux)",
-        "singleInstance": true,
-        "command": "make &&  ./run.sh samples/chile_1960.txt",
-      },
-      {
-        "name": "Huge grid 1 (Linux)",
-        "singleInstance": true,
-        "command": "make && ./run.sh samples/huge_grid_1.txt",
-      },*/
     ],
     "defaultColor": "white",
     "reloadButton": "$(extensions-refresh)",
